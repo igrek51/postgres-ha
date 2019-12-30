@@ -1,0 +1,56 @@
+version: '2.4'
+
+services:
+    patroni1:
+        build: .
+        image: patroni
+        networks:
+            test_cluster:
+                ipv4_address: 172.20.0.5
+        env_file: docker/patroni.env
+        container_name: patroni1
+        hostname: patroni1
+        command: etcd -name patroni1 -initial-advertise-peer-urls http://patroni1:2380
+
+    patroni2:
+        build: .
+        image: patroni
+        networks:
+            test_cluster:
+                ipv4_address: 172.20.0.6
+        env_file: docker/patroni.env
+        container_name: patroni2
+        hostname: patroni2
+        command: etcd -name patroni2 -initial-advertise-peer-urls http://patroni2:2380
+
+    patroni3:
+        build: .
+        image: patroni
+        networks:
+            test_cluster:
+                ipv4_address: 172.20.0.7
+        env_file: docker/patroni.env
+        container_name: patroni3
+        hostname: patroni3
+        command: etcd -name patroni3 -initial-advertise-peer-urls http://patroni3:2380
+
+    haproxy:
+        image: patroni
+        env_file: docker/patroni.env
+        hostname: haproxy
+        container_name: demo-haproxy
+        ports:
+            - "5432:5432"
+            - "5001:5001"
+            - "8000:8000"
+        command: haproxy
+        networks:
+            test_cluster:
+                ipv4_address: 172.20.0.8
+
+networks:
+    test_cluster:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.20.0.0/24
